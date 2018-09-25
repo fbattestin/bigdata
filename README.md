@@ -24,16 +24,21 @@ EditLog - Semelhante ao Journal do Linux, com o log das alterações do File Sys
     Envia um Heartbeat ao NameNode periodicamente para relatar o estado geral do HDFS. Por padrão, a frequência é definida como 3 segundos.
     
 # SecondaryNameNode (CheckpointNode) :
-    É o processo responsável por ler constantemente todos os sistemas de arquivos e metadados da RAM do NameNode e o grava no disco rígido ou no sistema de arquivos;
-    É responsável por combinar o EditLogs com FsImage do NameNode;
-    Baixa os EditLogs do NameNode em intervalos regulares e aplica-se a FsImage;
-    O novo FsImage é copiado de volta para o NameNode, que é usado sempre que o NameNode for iniciado na próxima vez.
 O SecondaryNameNode é o processo responsável por sincronizar os arquivos EditLogs com a imagem do FsImage, para gerar um novo FsImage mais atualizado. Essa atividade é executada pelo SecondaryNameNode de forma agendada, definindo-se um intervalo de tempo em segundos no arquivo core-site.xml. Também pode ser disparada sempre que o total de edições atingir um limite de
 tamanho em bytes, predeterminado no arquivo de configuração.
 
-# Blocagem :
+    Processo responsável por ler constantemente todos os sistemas de arquivos e metadados da RAM do NameNode e o grava no disco rígido ou no sistema de arquivos;
+    É responsável por combinar o EditLogs com FsImage do NameNode;
+    Baixa os EditLogs do NameNode em intervalos regulares e aplica-se a FsImage;
+    O novo FsImage é copiado de volta para o NameNode, que é usado sempre que o NameNode for iniciado na próxima vez.
 
-  
+
+# Blocagem :
+    O bloco representa a menor localização contínua em seu disco rígido onde os dados são armazenados.
+    O tamanho padrão de cada bloco é de 128 MB no Apache Hadoop 2.x (64 MB no Apache Hadoop 1.x) e que você pode configurar de acordo com sua exigência.
+    Não é necessário que, no HDFS, cada arquivo seja armazenado em múltiplos exatos do tamanho de bloco configurado (128 MB,256 MB etc.)
+    O HDFS usa um detector de erro conhecido como CRC-32C para verificar todo dado escrito e lido do sistema.
+    Na escrita o último DataNode do pipeline é responsável por fazer essa verificação, se ele detectar um erro, o cliente é notificado e deve lidar com esse erro, repetindo a operação, por exemplo.
 
 
 /* !!!!
