@@ -4,7 +4,7 @@ FSimage - Arquivo com o estado atual do File System dos DATANODES. Localizado no
 EditLog - Semelhante ao Journal do Linux, com o log das alterações do File System. Normalmente é dedicado um host para armazenar esse arquivo que irá auxiliar o NameNode. Comumente chamado de SecondaryNameNode.
 
 
-NameNode: 
+*NameNode: 
     É o processo mestre que mantém e gerencia os DataNodes;
     Registra os metadados de todos os blocos armazenados no cluster: localização dos blocos armazenados, tamanho dos arquivos,      permissões, hierarquia, etc;
     Registra todas e cada uma das alterações que ocorrem nos metadados do sistema de arquivos;
@@ -31,7 +31,7 @@ SecondaryNameNode (CheckpointNode) :
 O SecondaryNameNode é o processo responsável por sincronizar os arquivos EditLogs com a imagem do FsImage, para gerar um novo FsImage mais atualizado. Essa atividade é executada pelo SecondaryNameNode de forma agendada, definindo-se um intervalo de tempo em segundos no arquivo core-site.xml. Também pode ser disparada sempre que o total de edições atingir um limite de
 tamanho em bytes, predeterminado no arquivo de configuração.
 
-##Blocagem:
+#Blocagem:
   
 
 
