@@ -43,4 +43,77 @@ tamanho em bytes, predeterminado no arquivo de configuração.
 
 /* !!!!
         Como estão organizados os Datanodes nos RACKs (Fisicamente e Logicamente);
-*/        
+*/ 
+# Comandos HDFS:
+    
+    prefixo: hdfs dfs 
+    
+    Listar
+    -ls
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -ls /
+    
+    Remover arquivos
+    (*) Criar um arquivo vazio, ou altera a data de criação.
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -touchz /tmp/README.txt
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -rm /tmp/README.txt
+    18/09/26 22:34:51 INFO fs.TrashPolicyDefault: Moved: 'hdfs://sandbox-hdp.hortonworks.com:8020/tmp/README.txt' to trash at:                  hdfs://sandbox-hdp.hortonworks.com:8020/user/maria_dev/.Trash/Current/tmp/README.txt
+
+    Mover Arquivos
+    -mv
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -mv /tmp/README.txt /user/maria_dev/
+    
+    Copiar arquivos do sistema de arquivos LOCAL para o HDFS
+    -copyFromLocal
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -copyFromLocal /etc/fstab /tmp
+    
+    Visualizar arquivo
+    -cat
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -cat /tmp/fstab
+    
+    Mover arquivo
+    -moveFromLocal
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -moveFromLocal /tmp/passwd /user/maria_dev
+    
+    Copiar arquivos do sistema de arquivos HDFS para LOCAL
+    -get
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -get /user/maria_dev/README.txt /tmp
+    
+    Mesclar arquivos HDFS para LOCAL
+    -getmerge
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -getmerge /user/maria_dev /tmp/arquivos-hdfs
+
+    Copiar os arquivos LOCAL para HDFS
+    -put   
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -put /etc/issue /tmp
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -ls /tmp
+    Found 1 items
+    -rw-r--r--   1 maria_dev hdfs         47 2018-09-26 22:55 /tmp/issue
+
+    Criar diretorio no HDFS
+    -mkdir
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -mkdir /tmp/arquivos/
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -ls /tmp/
+    Found 5 items
+    drwxr-xr-x   - maria_dev hdfs          0 2018-09-26 22:57 /tmp/arquivos
+    drwxr-xr-x   - hdfs      hdfs          0 2018-02-01 10:24 /tmp/entity-file-history
+    -rw-r--r--   1 maria_dev hdfs        617 2018-09-26 22:41 /tmp/fstab
+    drwx-wx-wx   - ambari-qa hdfs          0 2018-02-01 10:29 /tmp/hive
+    -rw-r--r--   1 maria_dev hdfs         47 2018-09-26 22:55 /tmp/issue
+
+    Listar HDFS de forma recursiva 
+    -ls -R
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -ls -R /tmp
+
+    Remover diretorio HDFS
+    -rmdir
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -rmdir /tmp/arquivos/
+    
+    Copiar diretorio do LOCAL para HDFS
+    -copyFromLocal
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -copyFromLocal hadoop/ /tmp
+    
+    Remover de forma Recursiva
+    -rm -R
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -rm -R /tmp/hadoop
+
+        
