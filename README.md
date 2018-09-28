@@ -118,13 +118,13 @@ tamanho em bytes, predeterminado no arquivo de configuração.
 
         
 
-# Comandos Pig
+# Comandos PIG
 As chamadas PIG podem ser realizadas via AMBARI (Hortonworks) ou via command line HDFS. 
 Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
 
 > pig -x tez script.pig
--x = executar
-tez = motor de execução do MAPREDUCE, com as opções TEZ, LOCAL e MAPREDUCE
+       -x = executar
+       tez = motor de execução do MAPREDUCE, com as opções TEZ, LOCAL e MAPREDUCE
 
     --CHAMDA DO PIG VIA SHELL:pig -x tez script.pig
     --ONDE TEZ É VARIÁVEL PARA ESCOLHA DO MOTOR DE EXECUÇÃO DO MAPREDURCE
