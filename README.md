@@ -117,3 +117,85 @@ tamanho em bytes, predeterminado no arquivo de configuração.
     [maria_dev@sandbox-hdp ~]$ hdfs dfs -rm -R /tmp/hadoop
 
         
+
+# Comandos Pig
+As chamadas PIG podem ser realizadas via AMBARI (Hortonworks) ou via command line HDFS. 
+Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
+
+> pig -x tez script.pig
+-x = executar
+tez = motor de execução do MAPREDUCE, com as opções TEZ, LOCAL e MAPREDUCE
+
+    --CHAMDA DO PIG VIA SHELL:pig -x tez script.pig
+    --ONDE TEZ É VARIÁVEL PARA ESCOLHA DO MOTOR DE EXECUÇÃO DO MAPREDURCE
+    --TEZ É UM MOTOR DE GRAFO
+
+    --CARREGANDO ARQUIVO PARA VARIAVEL "VIEW" DO PIG
+    --lista_data = LOAD '/user/maria_dev/u.data' AS (usuarioID: int, filmeID: int, classificacao: int, data: int);
+    --DUMP lista_data;
+
+    --COMANDO LIMIT = SINTAXE SQL TOP
+    --dados_limit = LIMIT lista_data 5;
+    --DUMP dados_limit;
+
+
+    --COMANDO FILTER = SINTAXE SQL WHERE
+    --cla_filme = FILTER lista_data BY classificacao > 3.0;
+    --DUMP cla_filme;
+
+    --SINTAXE AND PARA O WHERE
+    --teste = FILTER lista_data BY filmeID > 100 AND classificacao ==3;
+    --DUMP teste;
+
+
+    --CARREGANDO ARQUIVO DO HDFS PARA VARIAVEL lista_item ARQUIVO CONTEM CAMPOS TEXTO
+    --E SAO CARRAGADOS NA VARIAVEL COM A TIPAGEM CHARARRAY.
+    --lista_item = LOAD '/user/maria_dev/u.item' USING PigStorage ('|') AS (filmeID: int, filmeTitulo: chararray, dataLancamento: chararray, videoLancamento: chararray, link: chararray);
+
+    --SINTAXE LIKE PARA CAMPOS CHAR/STRING
+    --nome_filme = FILTER lista_item BY (filmeTitulo matches '.*Story.*');
+    --DUMP nome_filme;
+
+    --SINTAXE DISTINCT
+    --USANDO O DATASET CARREGADO NA lista_data DO ARQUIVO u.data
+    --data_unique = DISTINCT lista_data;
+    --dump data_unique;
+
+    --INNER JOIN
+    --Carregando tabela com dados dos filmes.
+    lista_data = load '/user/maria_dev/u.data' as (usuarioid: int, filmeid: int, classificacao: int, data: int);
+
+    --Carregando tabela com itens dos filmes.
+    lista_item = load '/user/maria_dev/u.item' USING PigStorage ('|') AS (filmeid: int, filmetitulo: chararray, datalancamento: chararray, videolancamento: chararray, link: chararray);
+
+    --Carregando tabela com itens dos filmes.
+    lista_item = load '/user/maria_dev/u.item' USING PigStorage ('|') AS (filmeid: int, filmetitulo: chararray, datalancamento: chararray, videolancamento: chararray, link: chararray);
+
+    --INNER JOIN MOSTRANDO TODOS OS CAMPOS
+    --inner_join = JOIN lista_data BY filmeid, lista_item BY filmeid;
+    --DUMP inner_join;
+
+    --INNER JOIN SELECIONANDO APENAS ALGUNS CAMPOS
+    --nr = foreach inner_join generate lista_data::filmeid, lista_item::filmetitulo;
+    --dump nr;
+
+    --LEFT JOIN
+    --left_join = JOIN lista_data BY filmeid LEFT OUTER, lista_item BY filmeid;
+    --dump left_join;
+
+    --RETORNANDO SOMENTE OS CAMPOS FILMEID E NOME DO FILME
+    --nr = foreach left_join generate lista_data::filmeid, lista_item::filmetitulo;
+    --dump nr;
+
+    --SPLIT
+    --Conceito: resultados definidos por uma condição são enviados para uma variável específicas.
+    --Utilizando o dataset lista_data
+
+    split lista_data into classificacao_menor if classificacao<3.0, classificacao_maior if classificacao>3.00;
+
+    --inserindo os 5 primeiros (comando LIMIT) da lista em uma nova variavel
+    lista_menor = limit classificacao_menor 5;
+    lista_maior = limit classificacao_maior 5;
+
+    dump lista_menor;
+    dump lista_maior;
