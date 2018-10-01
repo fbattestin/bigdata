@@ -31,6 +31,7 @@ tamanho em bytes, predeterminado no arquivo de configuração.
     É responsável por combinar o EditLogs com FsImage do NameNode;
     Baixa os EditLogs do NameNode em intervalos regulares e aplica-se a FsImage;
     O novo FsImage é copiado de volta para o NameNode, que é usado sempre que o NameNode for iniciado na próxima vez.
+   
 
 
 # Blocagem :
@@ -199,3 +200,25 @@ Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
 
     dump lista_menor;
     dump lista_maior;
+
+# Execicio
+    #Task1 - Importando Arquivos para HDFS
+    -----------------------------------------
+    [maria_dev@sandbox-hdp ~]$ cd ~
+    [maria_dev@sandbox-hdp ~]$ git clone https://github.com/rashidaligee/HDPCD-Certification.git 
+    Initialized empty Git repository in /home/maria_dev/HDPCD-Certification/.git/
+    remote: Enumerating objects: 197, done.
+    remote: Counting objects: 100% (197/197), done.
+    remote: Compressing objects: 100% (96/96), done.
+    remote: Total 197 (delta 93), reused 197 (delta 93), pack-reused 0
+    Receiving objects: 100% (197/197), 995.31 KiB | 742 KiB/s, done.
+    Resolving deltas: 100% (93/93), done.
+    [maria_dev@sandbox-hdp ~]$ 
+
+    [maria_dev@sandbox-hdp flightdelays]$ hdfs dfs -mkdir /user/maria_dev/flightdelays/
+    [maria_dev@sandbox-hdp flightdelays]$ hdfs dfs -put flight* /user/maria_dev/flightdelays    
+    [maria_dev@sandbox-hdp flightdelays]$ hdfs dfs -ls /user/maria_dev/flightdelays
+    Found 3 items
+    -rw-r--r--   1 maria_dev hdfs     956486 2018-10-01 22:20 /user/maria_dev/flightdelays/flight_delays1.csv
+    -rw-r--r--   1 maria_dev hdfs     961831 2018-10-01 22:20 /user/maria_dev/flightdelays/flight_delays2.csv
+    -rw-r--r--   1 maria_dev hdfs     972860 2018-10-01 22:20 /user/maria_dev/flightdelays/flight_delays3.csv
