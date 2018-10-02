@@ -290,3 +290,33 @@ Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
 
     LOAD DATA LOCAL INPATH '....' OVERWRITE INTO TABLE
 
+# HBase
+    >hbase shell
+    --Listar tabelas no hbase
+    >list
+    --exibir status do sistema
+    >status 'detailed'
+    --criar tabelas
+    create 'clientes','contato','pagamento'
+    create 'vendas','info_produto','info_venda'
+    --informações da tabela
+    desc 'vendas'
+    desc 'clientes'
+    --inserir registros 
+    put 'clientes','1','contato:Nome', 'Fabio Battestin'
+    put 'clientes','1','contato:Endereco','Av. Domingos de Morais'
+    put 'clientes','1','pagamento:Tipo','Cartao de Credito'
+    put 'clientes','1','pagamento:Valor','1300'
+    put 'clientes','1','pagamento:ID_Pagamento','001'
+    put 'vendas','1','info_produto:Produto','TV'
+    put 'vendas','1','info_produto:Marca','LG'
+    put 'vendas','1','info_produto:Departamento','TV e Video'
+    put 'vendas','1','info_venda:Vendedor','Pauro'
+    put 'vendas','1','info_venda:ID_Pag','001'
+    
+    --select na tabela
+    scan 'clientes'
+    quit
+    
+    
+    
