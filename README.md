@@ -201,7 +201,7 @@ Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
     dump lista_menor;
     dump lista_maior;
 
-# Execicio
+# Simulado - Prova HortonWroks [HDPCD] 
     #Task1 - Importando Arquivos para HDFS
     -----------------------------------------
     [maria_dev@sandbox-hdp ~]$ cd ~
@@ -222,3 +222,70 @@ Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
     -rw-r--r--   1 maria_dev hdfs     956486 2018-10-01 22:20 /user/maria_dev/flightdelays/flight_delays1.csv
     -rw-r--r--   1 maria_dev hdfs     961831 2018-10-01 22:20 /user/maria_dev/flightdelays/flight_delays2.csv
     -rw-r--r--   1 maria_dev hdfs     972860 2018-10-01 22:20 /user/maria_dev/flightdelays/flight_delays3.csv
+    --------------------------------
+    Task 2 - Cleanup using PIG
+    --------------------------------
+    vi filghtdelays_cleanup.pig
+    
+    --Criando variável para armarezar dataset em memória
+    stage0 = LOAD 'flightdelays' USING PigStorage (',');
+    --DUMP stage0;
+    --Criando variável com filtro no campo deppTime (ou no posicional do dataset $4) <> de 'NA'
+    stage1 = FILTER stage0 BY (chararray)$4 != 'NA';
+    --Gerando arquivo com resultset reduzido a partir do filtro descrito acima.;
+    stage2 = FOREACH stage1 GENERATE $0 AS year:int,$1 as month:int,$2 as dayofmonth:int, $4 as deptime:int, $8 as uniquecarrier:chararray, $9 as flightnum:int, $14 as arrdelay:int, $16 as origin:chararray, $17 as dest:chararray;
+    STORE stage2 INTO 'flightdelays_clean' USING PigStorage (',');
+
+    ---------------------------------
+    Task 3 
+    ---------------------------------
+    Task 3.1
+    --------
+        stage0 = LOAD 'flightdelays_clean' USING PigStorage (',') as (year:int, month:int, dayofmonth:int, deptime:int, uniquecarrier:chararray, flightnum:int, arrdelay:int, origin:chararray, dest:chararray);
+    stage1 = GROUP stage0 ALL;
+    stage2 = FOREACH stage1 GENERATE COUNT(stage0);
+    STORE stage2 INTO 'fligthdelays_cleand_total';
+    --dump stage2;
+    
+    Task 3.2
+    --------
+    stage0 = LOAD 'flightdelays_clean' USING PigStorage (',');
+    stage1 = FILTER stage0 BY (chararray)$8 == 'DEN';
+    stage2 = GROUP stage1 ALL;
+    stage3 = FOREACH stage2 GENERATE COUNT(stage1);
+    STORE stage3 INTO 'denver_total';
+    --dump stage3;
+
+    Task 3.3
+    --------
+    stage0 = LOAD 'flightdelays_clean' USING PigStorage (',');
+    stage1 = FILTER stage0 BY (chararray)$8 == 'DEN' AND (int)$6 > 60;
+    --dump stage1;
+    stage2 = GROUP stage1 ALL;
+    stage3 = FOREACH stage2 GENERATE COUNT(stage1);
+    STORE stage3 INTO 'denver_late';
+
+    ----------------------------------------------
+    Task 4 - Criar tabela externa no HIVE (HQL)
+    ----------------------------------------------
+    --Iniciar shell do HIVE
+    >hive
+    >CREATE EXTERNAL TABLE flightdelays_ (year int,month int,dayofmonth int, deptime int, uniquecarrier string, flightnum int, arrdelay int, origin string, dest string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LOCATION '/user/maria_dev/flightdelays_clean';
+
+    --ou via script de comando.
+    hcat -f hive_external.hql
+    
+    ----------------------------------------------
+    Task 5 - LOAD HDFS File into HIVE Table (Pig)
+    ----------------------------------------------
+    
+    stage0 = LOAD 'flightdelays' USING org.apache.hive.hcatalog.pig.HCatLoader();
+    stage1 = FILTER stage0 BY arrdelay > 0;
+    stage2 = ORDER stage1 BY arrdelay DESC PARALLEL 3;
+    STORE stage2 INTO 'flightdelays_nonzero' USING PigStorage (',');
+    
+    Task 6
+    CREATE TABLE sfo_weather_txt (station_name STRING, year INT, month INT, dayofmonth INT, precipitation INT, temperature_max INT, temperature_MIN INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;
+
+    LOAD DATA LOCAL INPATH '....' OVERWRITE INTO TABLE
+
