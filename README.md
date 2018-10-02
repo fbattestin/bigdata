@@ -1,4 +1,5 @@
 # bigdata4linux
+https://tableaulogic.wordpress.com/2018/01/09/what-to-expect-when-adding-worker-node-tableau-server-10-5-linux/
 
 FSimage - Arquivo com o estado atual do File System dos DATANODES. Localizado no NameNode.
 EditLog - Semelhante ao Journal do Linux, com o log das alterações do File System. Normalmente é dedicado um host para armazenar esse arquivo que irá auxiliar o NameNode. Comumente chamado de SecondaryNameNode.
