@@ -1,8 +1,13 @@
 # bigdata4linux
-https://tableaulogic.wordpress.com/2018/01/09/what-to-expect-when-adding-worker-node-tableau-server-10-5-linux/
 
 FSimage - Arquivo com o estado atual do File System dos DATANODES. Localizado no NameNode.
 EditLog - Semelhante ao Journal do Linux, com o log das alterações do File System. Normalmente é dedicado um host para armazenar esse arquivo que irá auxiliar o NameNode. Comumente chamado de SecondaryNameNode.
+
+Para exercicios:
+    Appliance: HDP_2.6.4_virtualbox_01_02_2018_1428.ova
+    git clone https://github.com/4linux/hadoop.git
+    hdfs dfs -put /home/maria_dev/hadoop/ml-100k/* /home/maria_dev/
+    hdfs dfs -put /home/maria_dev/hadoop/dados/* /user/maria_dev/
 
 
 # NameNode : 
@@ -318,5 +323,38 @@ Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
     scan 'clientes'
     quit
     
+# Projeto02
+Carga via PIG para HBase
+pig -useHCatalog
     
+    lista_data = LOAD '/user/maria_dev/u.data' AS (usuarioID: int, filmeID: int, classificacao: int, data: int);
+    dump lista_data;
+    lista_item = LOAD '/user/admin/u.item' using PigStorage('|') AS (filmeID: int, filmeTitulo: chararray, dataLancamento: chararray, videoLancamento: chararray, link: chararray);
+
+    classifcacao_por_filme = GROUP lista_data BY filmeID;
+
+    avgRatings = FOREACH classifcacao_por_filme GENERATE group AS filmeID,
+        AVG(lista_data.classificacao) AS avgRating;
+
+    cincoestrelas = FILTER avgRatings BY avgRating > 4.0;
+
+    ---dump cincoestrelas;
+
+    STORE cincoestrelas INTO 'hbase://cincoestrelas' USING org.apache.pig.backend.hadoop.hbase.HBaseStorage('filmeID:filmeID avgRating:avgRating');
+    
+ 
+# Projeto03
+
+    lista_data = LOAD '/user/maria_dev/u.data' AS (usuarioid: int, filmeid: int, classificacao: int, data: int);
+    lista_item = LOAD '/user/maria_dev/u.item' using PigStorage('|') AS (filmeid: int, filmetitulo: chararray, datalancamento: chararray, videolancamento: chararray, link: chararray);
+
+    classifcacao_por_filme = GROUP lista_data BY filmeid;
+
+    avgratings = FOREACH classifcacao_por_filme GENERATE group AS filmeid,
+        AVG(lista_data.classificacao) AS avgrating;
+
+    cincoestrelas = FILTER avgratings BY avgrating > 4.0;
+    --dump cincoestrelas;
+    STORE cincoestrelas INTO 'cincoestrelas' using org.apache.hive.hcatalog.pig.HCatLoader();
+    ~                                                                                                   
     
