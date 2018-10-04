@@ -571,6 +571,88 @@ pig -useHCatalog
 
     $ sqoop import --connect jdbc:mysql://localhost:3306/movielens?useSSL=false --username root -P --target-dir sqoop_test --table exported_movies -hbase-table movies --hbase-row-key id --column-family id -m 1 --driver com.mysql.jdbc.Driver
     
-     
-     
+
+# flume
+
+    Exemplo de arquivo de configuração do FLUME:
+    
+    [maria_dev@sandbox-hdp ~]$ cat hadoop/confs/agent1-conf.properties
+    ##nome do canal
+    agent1.sources = netcatSrc
+    agent1.channels = memoryChannel
+    agent1.sinks = hdfsSink
+
+    ##### SOURCES
+    agent1.sources.netcatSrc.type = netcat
+    agent1.sources.netcatSrc.bind = 172.17.0.2
+    agent1.sources.netcatSrc.port = 44444
+    agent1.sources.netcatSrc.channels = memoryChannel
+
+    ##### CHANNELS
+    agent1.channels.memoryChannel.type = memory
+    agent1.channels.memoryChannel.capacity = 100
+    agent1.channels.memoryChannel.transactionCapacity = 100
+
+    ##### SINKS
+    agent1.sinks.hdfsSink.type = hdfs
+    agent1.sinks.hdfsSink.hdfs.path = hdfs://172.17.0.2:8020/flume/netcat
+    agent1.sinks.hdfsSink.hdfs.filePrefix = flume-
+    agent1.sinks.hdfsSink.hdfs.rollCount = 20
+    agent1.sinks.hdfsSink.hdfs.batchSize = 20
+    agent1.sinks.hdfsSink.channel = memoryChannel
+    
+    ## Executar o flume e gravar direto no HDFS:
+    ## Em um terminal abre a porta para ouvir a aplicação:
+    flume-ng agent -n agent1 -c conf -f /home/maria_dev/hadoop/confs/agent1-conf.properties -Dflume.root.logger=DEBUG,console
+
+    ## No servidor da aplicação abre um netcat/telnet na porta configurada no arquivo de conf do flume:
+    [root@sandbox-hdp ~]# nc 172.17.0.2 44444
+
+    ## A partir daí tudo que for inserido nesse netcat será enviado para o HDFS via FLUME.
+
+    # Verificar arquivos gerados:
+    hdfs dfs -ls /flume/netcat 
+    hdfs dfs -cat /flume/netcat/flume-.1538613313055
+    
+    # Input de streamming do FLUME para o HBase
+
+    [maria_dev@sandbox-hdp ~]$ hbase shell
+    HBase Shell; enter 'help<RETURN>' for list of supported commands.
+    Type "exit<RETURN>" to leave the HBase Shell
+    Version 1.1.2.2.6.4.0-91, r2a88e694af7238290a5747f963a4fa0079c55bf9, Thu Jan  4 10:32:40 UTC 2018
+
+    hbase(main):001:0> create 'messages_netcat', 'nc';
+    hbase(main):002:0* list
+
+    # Arquivo de configuração do FLUME para criação do Canal com o HBase
+    [maria_dev@sandbox-hdp ~]$ cat /home/maria_dev/hadoop/confs/agent2-conf.properties
+    agent2.sources = netcatSrc
+    agent2.channels = memoryChannel
+    agent2.sinks = hbaseSink
+
+    ##### SOURCES
+    agent2.sources.netcatSrc.type = netcat
+    agent2.sources.netcatSrc.bind = 172.17.0.2
+    agent2.sources.netcatSrc.port = 55555
+    agent2.sources.netcatSrc.channels = memoryChannel
+
+    ##### CHANNELS
+    agent2.channels.memoryChannel.type = memory
+    agent2.channels.memoryChannel.capacity = 100
+    agent2.channels.memoryChannel.transactionCapacity = 100
+
+    ##### SINKS
+    agent2.sinks.hbaseSink.type = org.apache.flume.sink.hbase.HBaseSink
+    agent2.sinks.hbaseSink.table = messages_netcat
+    agent2.sinks.hbaseSink.columnFamily = nc
+    agent2.sinks.hbaseSink.serializer = org.apache.flume.sink.hbase.RegexHbaseEventSerializer
+    agent2.sinks.hbaseSink.channel = memoryChannel
+    [maria_dev@sandbox-hdp ~]$ 
+
+    # comando para execução do FLUME
+    flume-ng agent -n agent2 -c conf -f /home/maria_dev/hadoop/confs/agent2-conf.properties -Dflume.root.logger=DEBUG,console
+    
+    # Cliente fechando conexão com o Hbase via netcat na porta 55555 configura na conf acima.
+    [root@sandbox-hdp ~]# nc 172.17.0.2 55555
+    
     
