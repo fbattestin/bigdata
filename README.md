@@ -656,3 +656,253 @@ pig -useHCatalog
     [root@sandbox-hdp ~]# nc 172.17.0.2 55555
     
     
+# Spark
+Gerenciar data frames no Spark
+
+    Shell do Spark: spark-shell
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+    /___/ .__/\_,_/_/ /_/\_\   version 2.2.0.2.6.4.0-91
+       /_/
+    
+    # Carregar dados do tipo Texto do HDFS e armazenar em uma variável RDD:
+    scala> val func_txt = sc.textFile("/user/maria_dev/funcionarios.txt")
+    func_txt: org.apache.spark.rdd.RDD[String] = /user/maria_dev/funcionarios.txt MapPartitionsRDD[1] at textFile at <console>:24
+    
+    # Para exibir o conteúdo de uma variável RDD - collect()
+    scala> func_txt.collect()
+    
+    # top 1
+    scala> func_txt.first()
+    res1: String = 1,Marcio Santos,Analista,5000,Projetos
+
+    # count em uma variável RDD
+    scala> func_txt.count()
+    res2: Long = 20
+    
+    # top5
+    scala> func_txt.take(5)
+    
+    # carregar JSON
+    scala> val func = spark.read.json("/user/maria_dev/funcionarios.json")
+    
+    # exibir dataframe
+    scala> func.show()
+    +---------+----------------+-------+---------------+-------+
+    |    cargo|    departamento|id_func|           nome|salario|
+    +---------+----------------+-------+---------------+-------+
+    | Analista|        Projetos|      1|  Marcio Santos|   5000|
+    |Instrutor|     Treinamento|      2|   Bruno Garcia|   4000|
+    |Vendedora|          Vendas|      3|    Celia Silva|   3500|
+    | Gerencia|Recursos Humanos|      4|   Beatriz Dias|   5500|
+    |Instrutor|     Treinamento|      5| Sandro Correia|   4200|
+    | Analista|        Projetos|      6|   Leticia Dias|   5100|
+    | Analista|        Projetos|      7|   Cacio Farias|   5100|
+    | Gerencia|   Administracao|      8|     Cezar Maia|   7000|
+    |Vendedora|          Vendas|      9|   Amanda Nunes|   3500|
+    |Vendedora|          Vendas|     10|   Paula Priore|   3500|
+    | Analista|        Projetos|     11|     Carla Neto|   4000|
+    |Vendedora|          Vendas|     12|   Marcia Costa|   2700|
+    | Analista|Recursos Humanos|     13|  Luciana Prado|   4100|
+    |Vendedora|          Vendas|     14| Roberta Amaral|   2800|
+    |Instrutor|     Treinamento|     15|Rogerio Ribeiro|   4000|
+    |Vendedora|          Vendas|     16|   Rosana Rocha|   3000|
+    | Analista|        Projetos|     17|Claudio Queiroz|   6500|
+    | Gerencia|   Administracao|     18|   Diego Chaves|   7500|
+    |Instrutor|     Treinamento|     19|Sergio Nogueira|   5300|
+    |Vendedora|          Vendas|     20|  Samantha Reis|   4000|
+    +---------+----------------+-------+---------------+-------+
+
+    # qtde de registro, count:
+    scala> func.count()
+    res1: Long = 20
+
+    # top 10
+    scala> func.take(10)
+        res2: Array[org.apache.spark.sql.Row] = Array([Analista,Projetos,1,Marcio Santos,5000], [Instrutor,Treinamento,2,Bruno Garcia,4000], [Vendedora,Vendas,3,Celia Silva,3500], [Gerencia,Recursos Humanos,4,Beatriz Dias,5500], [Instrutor,Treinamento,5,Sandro Correia,4200], [Analista,Projetos,6,Leticia Dias,5100], [Analista,Projetos,7,Cacio Farias,5100], [Gerencia,Administracao,8,Cezar Maia,7000], [Vendedora,Vendas,9,Amanda Nunes,3500], [Vendedora,Vendas,10,Paula Priore,3500])
+        
+    # exibir metadados
+    scala> func.printSchema()
+    root
+     |-- cargo: string (nullable = true)
+     |-- departamento: string (nullable = true)
+     |-- id_func: long (nullable = true)
+     |-- nome: string (nullable = true)
+     |-- salario: long (nullable = true)
+    
+    # selecionar apenas uma coluna
+    scala> func.select("Nome").show()
+    +---------------+
+    |           Nome|
+    +---------------+
+    |  Marcio Santos|
+    |   Bruno Garcia|
+    |    Celia Silva|
+    |   Beatriz Dias|
+    | Sandro Correia|
+    |   Leticia Dias|
+    |   Cacio Farias|
+    |     Cezar Maia|
+    |   Amanda Nunes|
+    |   Paula Priore|
+    |     Carla Neto|
+    |   Marcia Costa|
+    |  Luciana Prado|
+    | Roberta Amaral|
+    |Rogerio Ribeiro|
+    |   Rosana Rocha|
+    |Claudio Queiroz|
+    |   Diego Chaves|
+    |Sergio Nogueira|
+    |  Samantha Reis|
+    +---------------+
+
+    # selecionar mais de uma coluna em um dataframe
+    scala> func.select($"Nome",$"Departamento").show
+    +---------------+----------------+
+    |           Nome|    Departamento|
+    +---------------+----------------+
+    |  Marcio Santos|        Projetos|
+    |   Bruno Garcia|     Treinamento|
+    |    Celia Silva|          Vendas|
+    |   Beatriz Dias|Recursos Humanos|
+    | Sandro Correia|     Treinamento|
+    |   Leticia Dias|        Projetos|
+    |   Cacio Farias|        Projetos|
+    |     Cezar Maia|   Administracao|
+    |   Amanda Nunes|          Vendas|
+    |   Paula Priore|          Vendas|
+    |     Carla Neto|        Projetos|
+    |   Marcia Costa|          Vendas|
+    |  Luciana Prado|Recursos Humanos|
+    | Roberta Amaral|          Vendas|
+    |Rogerio Ribeiro|     Treinamento|
+    |   Rosana Rocha|          Vendas|
+    |Claudio Queiroz|        Projetos|
+    |   Diego Chaves|   Administracao|
+    |Sergio Nogueira|     Treinamento|
+    |  Samantha Reis|          Vendas|
+    +---------------+----------------+
+
+
+    # where no spark
+    scala> func.filter($"Salario" > 5000).show
+    +---------+----------------+-------+---------------+-------+
+    |    cargo|    departamento|id_func|           nome|salario|
+    +---------+----------------+-------+---------------+-------+
+    | Gerencia|Recursos Humanos|      4|   Beatriz Dias|   5500|
+    | Analista|        Projetos|      6|   Leticia Dias|   5100|
+    | Analista|        Projetos|      7|   Cacio Farias|   5100|
+    | Gerencia|   Administracao|      8|     Cezar Maia|   7000|
+    | Analista|        Projetos|     17|Claudio Queiroz|   6500|
+    | Gerencia|   Administracao|     18|   Diego Chaves|   7500|
+    |Instrutor|     Treinamento|     19|Sergio Nogueira|   5300|
+    +---------+----------------+-------+---------------+-------+
+    
+    #3 group by 
+    scala> func.groupBy("departamento").count().show
+    +----------------+-----+                                                        
+    |    departamento|count|
+    +----------------+-----+
+    |Recursos Humanos|    2|
+    |        Projetos|    5|
+    |          Vendas|    7|
+    |   Administracao|    2|
+    |     Treinamento|    4|
+    +----------------+-----+
+
+    # armazenar em uma variável o resultado do filtro dataframe
+    scala> val filtro = func.filter($"salario" > 5000)
+    filtro: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [cargo: string, departamento: string ... 3 more fields]
+
+    scala> filtro.show()
+    +---------+----------------+-------+---------------+-------+
+    |    cargo|    departamento|id_func|           nome|salario|
+    +---------+----------------+-------+---------------+-------+
+    | Gerencia|Recursos Humanos|      4|   Beatriz Dias|   5500|
+    | Analista|        Projetos|      6|   Leticia Dias|   5100|
+    | Analista|        Projetos|      7|   Cacio Farias|   5100|
+    | Gerencia|   Administracao|      8|     Cezar Maia|   7000|
+    | Analista|        Projetos|     17|Claudio Queiroz|   6500|
+    | Gerencia|   Administracao|     18|   Diego Chaves|   7500|
+    |Instrutor|     Treinamento|     19|Sergio Nogueira|   5300|
+    +---------+----------------+-------+---------------+-------+
+    
+    #exportando dataframe em txt no HDFS
+    scala> filtro.rdd.saveAsTextFile("/user/maria_dev/spark-out.txt")
+
+    # antes de realizar comandos SQL é preciso registrar o dataframe como view temporária
+    scala> func.createOrReplaceTempView("func")
+
+    # criar variável utilizando a função spark.sql
+    scala> val SQLfunc = spark.sql("select * from func where cargo = 'Analista'")
+    SQLfunc: org.apache.spark.sql.DataFrame = [cargo: string, departamento: string ... 3 more fields]
+
+    scala> SQLfunc.show()
+    +--------+----------------+-------+---------------+-------+
+    |   cargo|    departamento|id_func|           nome|salario|
+    +--------+----------------+-------+---------------+-------+
+    |Analista|        Projetos|      1|  Marcio Santos|   5000|
+    |Analista|        Projetos|      6|   Leticia Dias|   5100|
+    |Analista|        Projetos|      7|   Cacio Farias|   5100|
+    |Analista|        Projetos|     11|     Carla Neto|   4000|
+    |Analista|Recursos Humanos|     13|  Luciana Prado|   4100|
+    |Analista|        Projetos|     17|Claudio Queiroz|   6500|
+    +--------+----------------+-------+---------------+-------+
+
+    scala> val SQLsal = spark.sql("select * from func where salario > 5000").show
+    +---------+----------------+-------+---------------+-------+
+    |    cargo|    departamento|id_func|           nome|salario|
+    +---------+----------------+-------+---------------+-------+
+    | Gerencia|Recursos Humanos|      4|   Beatriz Dias|   5500|
+    | Analista|        Projetos|      6|   Leticia Dias|   5100|
+    | Analista|        Projetos|      7|   Cacio Farias|   5100|
+    | Gerencia|   Administracao|      8|     Cezar Maia|   7000|
+    | Analista|        Projetos|     17|Claudio Queiroz|   6500|
+    | Gerencia|   Administracao|     18|   Diego Chaves|   7500|
+    |Instrutor|     Treinamento|     19|Sergio Nogueira|   5300|
+    +---------+----------------+-------+---------------+-------+
+    
+    # salvar dataframe em CSV
+    scala> SQLfunc.write.csv("/user/maria_dev/spark-out-csv")
+    
+    # para chamar script externo no spark
+    [maria_dev@sandbox-hdp ~]$ cat ~/hadoop/scripts/script.scala
+    val funcionarios = spark.read.json("/user/maria_dev/funcionarios.json")
+    funcionarios.createOrReplaceTempView("funcionarios")
+    val qtd_departamentos_funcionarios = spark.sql("SELECT cargo,COUNT(departamento) FROM funcionarios GROUP by cargo")
+    qtd_departamentos_funcionarios.rdd.saveAsTextFile("/user/maria_dev/spark/contagem_funcionarios_por_departamentos")
+    [maria_dev@sandbox-hdp ~]$ 
+
+    # criando conexão spark com Hive
+    val sqlContext = new org.apache.spark.sql.hive.HiveContext(sc)
+    
+    # criando tabela no Hive através do shell do Spark
+    scala> sql("create table if not exists func_import_spark (id int, nome string,cargo string,salario int,     departamento string) row format delimited fields terminated by ','lines terminated by '\n'")
+    res0: org.apache.spark.sql.DataFrame = []
+    
+    # exibir tabelas do Hive no Spark
+    scala> sql("SHOW TABLES").show()
+    +--------+-----------------+-----------+
+    |database|        tableName|isTemporary|
+    +--------+-----------------+-----------+
+    | default|    cincoestrelas|      false|
+    | default|func_import_spark|      false|
+    | default|        sample_07|      false|
+    | default|        sample_08|      false|
+    +--------+-----------------+-----------+
+    
+    # carregando arquivos do TXT na tabela criada acima
+    sql("load data local inpath '/user/maria_dev/funcionarios.txt' into table func_import_spark")
+    
+    # fazer select no Hive atraves do Spark
+    sql("select * from func_import_spark where salario > 5000").show
+    scala> sql("select * from func_import_spark where salario > 5000").show
+    +---+----+-----+-------+------------+
+    | id|nome|cargo|salario|departamento|
+    +---+----+-----+-------+------------+
+    +---+----+-----+-------+------------+
+
+
+
