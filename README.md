@@ -323,6 +323,9 @@ Os scripts PIG são salvos com a extensão .pig conforme sintaxe abaixo:
     scan 'clientes'
     quit
     
+    --filtro = WHERE
+    hbase(main):007:0> scan 'aula5_vendas_import_sqoop', {COLUMNS => 'dados:tipo_curso', FILTER => "ValueFilter(=,'binaryprefix:Online')"}
+    
 # Projeto02
 Carga via PIG para HBase
 pig -useHCatalog
@@ -357,4 +360,217 @@ pig -useHCatalog
     --dump cincoestrelas;
     STORE cincoestrelas INTO 'cincoestrelas' using org.apache.hive.hcatalog.pig.HCatLoader();
     ~                                                                                                   
+    
+# sqoop
+    [maria_dev@sandbox-hdp ~]$ sqoop help
+    Warning: /usr/hdp/2.6.4.0-91/accumulo does not exist! Accumulo imports will fail.
+    Please set $ACCUMULO_HOME to the root of your Accumulo installation.
+    18/10/03 22:12:59 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.4.0-91
+    usage: sqoop COMMAND [ARGS]
+
+    Available commands:
+      codegen            Generate code to interact with database records
+      create-hive-table  Import a table definition into Hive
+      eval               Evaluate a SQL statement and display the results
+      export             Export an HDFS directory to a database table
+      help               List available commands
+      import             Import a table from a database to HDFS
+      import-all-tables  Import tables from a database to HDFS
+      import-mainframe   Import datasets from a mainframe server to HDFS
+      job                Work with saved jobs
+      list-databases     List available databases on a server
+      list-tables        List available tables in a database
+      merge              Merge results of incremental imports
+      metastore          Run a standalone Sqoop metastore
+      version            Display version information
+
+    See 'sqoop help COMMAND' for information on a specific command.
+    
+    # Para listar os bancos de dados: list-databases
+    sqoop list-databases --connect jdbc:mysql://localhost:3306/mysql?useSSL=false --username root -P
+    # para passar a senha na linha de comando:
+    sqoop list-databases --connect jdbc:mysql://localhost:3306/mysql?useSSL=false --username root -password hadoop
+    
+    
+    Outpút:
+        [maria_dev@sandbox-hdp ~]$ sqoop list-databases --connect jdbc:mysql://localhost:3306/mysql?useSSL=false --username root -P
+    18/10/03 22:24:15 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.4.0-91
+    Enter password: 
+    18/10/03 22:24:18 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+    information_schema
+    hive
+    mysql
+    performance_schema
+    ranger
+    
+    # Para listar as tableas: list-tables
+    sqoop list-tables --connect jdbc:mysql://localhost:3306/mysql?useSSL=false --username root -P
+    
+    output:
+    maria_dev@sandbox-hdp ~]$ sqoop list-tables --connect jdbc:mysql://localhost:3306/mysql?useSSL=false --username root -P
+    18/10/03 22:27:30 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.4.0-91
+    Enter password: 
+    18/10/03 22:27:33 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+    columns_priv
+    db
+    event
+    func
+    general_log
+    help_category
+    help_keyword
+    help_relation
+    help_topic
+    innodb_index_stats
+    innodb_table_stats
+    ndb_binlog_index
+    plugin
+    proc
+    procs_priv
+    proxies_priv
+    servers
+    slave_master_info
+    slave_relay_log_info
+    slave_worker_info
+    slow_log
+    tables_priv
+    time_zone
+    time_zone_leap_second
+    time_zone_name
+    time_zone_transition
+    time_zone_transition_type
+    user
+
+    ## Para conectar utilizando arquivo de configuração: sqoop --options-file import_mysql.txt
+    >vi import_mysql.txt
+    
+    list-databases
+    --connect
+    jdbc:mysql://localhost:3306/?useSSL=false
+    --username
+    root
+    --password
+    hadoop
+
+    [maria_dev@sandbox-hdp ~]$ sqoop --options-file import_mysql.txt
+    18/10/03 22:31:43 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+    information_schema
+    hive
+    mysql
+    performance_schema
+    ranger
+
+    
+    ## Para importar os dados do banco de dados (MySQL) para o HDFS:
+    --tabela funcionarios
+    sqoop import --connect jdbc:mysql://localhost:3306/labs --driver com.mysql.jdbc.Driver --table funcionarios --target-dir funcionarios_mysql --username root -P -m1
+    
+    --tabela vendas
+     sqoop import --connect jdbc:mysql://localhost:3306/labs --driver com.mysql.jdbc.Driver --table vendas --target-dir vendas_mysql --username root -P -m1
+     
+     --para ler arquivo no HDFS
+     hdfs dfs -cat /user/maria_dev/funcionarios_mysql/part-m-00000
+
+    --importar tabelas do mysql para hdfs através query.
+    sqoop import --connect jdbc:mysql://localhost:3306/labs --driver com.mysql.jdbc.Driver --query 'select * from funcionarios where salario > 5000 and $CONDITIONS' --target-dir /tmp/sqoop_out_select -m1 -username root -P
+
+     --carga incremental com as flags --incremental --check-column e --last-value
+     sqoop import --connect jdbc:mysql://localhost:3306/labs --driver com.mysql.jdbc.Driver --table funcionarios --check-cloumn id --incremental append --last-value 20 --target-dir /tmp/sqoop_out -m1 -username root -P  
+     
+     --carga do MySQL para o HBase via sqoop
+     sqoop import --connect jdbc:mysql://localhost:3306/labs --driver com.mysql.jdbc.Driver --table vendas --username root -P --hbase-table aula5_vendas_import_sqoop --column-family dados --hbase-row-key cliente -m1
+     
+    --exportar dados do HDFS
+    --> O processo abaixo, mosta o INPUT de um arquivo .txt delimitado por ',' dentro de um diretorio HDFS /tmp/outsqoop 
+    [maria_dev@sandbox-hdp ~]$ cat hadoop/dados/funcionarios.txt
+    1,Marcio Santos,Analista,5000,Projetos
+    2,Bruno Garcia,Instrutor,4000,Treinamento
+    3,Celia Silva,Vendedora,4800,Vendas
+    4,Beatriz Dias,Gerencia,5500,Recursos Humanos
+    5,Sandro Correia,Instrutor,4200,Treinamento
+    6,Leticia Santana,Analista,5100,Projetos
+    7,Cacio Farias,Analista,5100,Projetos
+    8,Cezar Maia,Gerencia,7000,Administracao
+    9,Amanda Nunes,Vendedora,3500,Vendas
+    10,Paula Priore,Vendedora,3700,Vendas
+    11,Carla Neto,Analista,4000,Projetos
+    12,Marcia Costa,Vendedora,2700,Vendas
+    13,Luciana Prado,Analista,4100,Recursos Humanos
+    14,Roberta Amaral,Vendedora,2800,Vendas
+    15,Rogerio Ribeiro,Instrutor,4000,Treinamento
+    16,Rosana Rocha,Vendedora,3000,Vendas
+    17,Claudio Queiroz,Analista,6500,Projetos
+    18,Diego Chaves,Gerencia,7500,Administracao
+    19,Sergio Nogueira,Instrutor,5300,Treinamento
+    20,Samantha Reis,Vendedora,4000,Vendas
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -mkdir /tmp/outsqoop
+    [maria_dev@sandbox-hdp ~]$ hdfs dfs -put hadoop/dados/funcionarios.txt /tmp/outsqoop
+
+    --exportando os dados do HDFS para o MySQL
+    sqoop export --connect jdbc:mysql://localhost:3306/export_sqoop --driver com.mysql.jdbc.Driver --table funcionarios --username root -P --export-dir /tmp/outsqoop/ -m1
+    
+    
+# Projeto04
+    :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: MySQL to HDFS :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    [maria_dev@sandbox-hdp ~]$ sqoop import --connect jdbc:mysql://localhost/movielens --driver com.mysql.jdbc.Driver --table movies -m 1 
+
+    http://localhost:8080 (Visualizar HDFS)
+
+    Remover o movies do HDFS
+
+    http://localhost:8080 (Visualizar no Hive)
+
+    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: MySQL to Hive :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    Fazer com o usuário hive:
+    # sudo -s
+    # su - hive
+
+    [hive@sandbox-hdp ~]$ sqoop import --connect jdbc:mysql://localhost/movielens --driver com.mysql.jdbc.Driver --table movies --hive-import
+
+    Worksheet
+
+    SELECT * FROM movies LIMIT 100;
+
+    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: HDFS to MySQL :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    apps -> hive -> warehouse
+
+    $ mysql -u root -p
+
+    mysql> use movielens;
+
+    mysql> CREATE TABLE exported_movies ( id INTEGER, title VARCHAR(255), releaseData DATE);
+    Query OK, 0 rows affected (0,09 sec)
+
+    mysql> exit
+
+    [maria_dev@sandbox-hdp ~]$ sqoop export --connect jdbc:mysql://localhost/movielens -m 1 --driver com.mysql.jdbc.Driver --table exported_movies --export-dir /apps/hive/warehouse/movies --input-fields-terminated-by '\0001'
+
+    $ mysql -u root -p
+
+    mysql> use movielens;
+
+    mysql> select * from exported_movies limit 5;
+
+    ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: MySQL to HBASE :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    [maria_dev@sandbox-hdp ~]$ hbase shell
+
+    hbase(main):001:0> create 'movies', 'id', 'title', 'releaseData'
+
+
+    hbase(main):002:0> list
+    TABLE                                                                           
+    ATLAS_ENTITY_AUDIT_EVENTS                                                       
+    atlas_titan                                                                     
+    iemployee                                                                       
+    movies                                                                          
+    4 row(s) in 0.0490 seconds
+
+
+    $ sqoop import --connect jdbc:mysql://localhost:3306/movielens?useSSL=false --username root -P --target-dir sqoop_test --table exported_movies -hbase-table movies --hbase-row-key id --column-family id -m 1 --driver com.mysql.jdbc.Driver
+    
+     
+     
     
