@@ -1,5 +1,7 @@
 # bigdata4linux
 
+https://www.nodexlgraphgallery.org/Pages/DownloadBasic.aspx?d=D39F0045FD04B597C5820939C0BE4AFB
+
 FSimage - Arquivo com o estado atual do File System dos DATANODES. Localizado no NameNode.
 EditLog - Semelhante ao Journal do Linux, com o log das alterações do File System. Normalmente é dedicado um host para armazenar esse arquivo que irá auxiliar o NameNode. Comumente chamado de SecondaryNameNode.
 
